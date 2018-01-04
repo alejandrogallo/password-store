@@ -121,7 +121,7 @@ reencrypt_path() {
 				local group="$(sed -n "s/^cfg:group:$(sed 's/[\/&]/\\&/g' <<<"${GPG_RECIPIENTS[$index]}"):\\(.*\\)\$/\\1/p" <<<"$groups" | head -n 1)"
 				[[ -z $group ]] && continue
 				IFS=";" eval 'GPG_RECIPIENTS+=( $group )' # http://unix.stackexchange.com/a/92190
-				unset GPG_RECIPIENTS[$index]
+				unset "GPG_RECIPIENTS[$index]"
 			done
 			gpg_keys="$($GPG $PASSWORD_STORE_GPG_OPTS --list-keys --with-colons "${GPG_RECIPIENTS[@]}" | sed -n 's/sub:[^:]*:[^:]*:[^:]*:\([^:]*\):[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[a-zA-Z]*e[a-zA-Z]*:.*/\1/p' | LC_ALL=C sort -u)"
 		fi
@@ -430,8 +430,8 @@ cmd_insert() {
 
 	[[ $force -eq 0 && -e $passfile ]] && yesno "An entry already exists for $path. Overwrite it?"
 
-	mkdir -p -v "$PREFIX/$(dirname "$path")"
-	set_gpg_recipients "$(dirname "$path")"
+	mkdir -p -v "$PREFIX/$(dirname -- "$path")"
+	set_gpg_recipients "$(dirname -- "$path")"
 
 	if [[ $multiline -eq 1 ]]; then
 		echo "Enter contents of $path and press Ctrl+D when finished:"
@@ -464,8 +464,8 @@ cmd_edit() {
 
 	local path="${1%/}"
 	check_sneaky_paths "$path"
-	mkdir -p -v "$PREFIX/$(dirname "$path")"
-	set_gpg_recipients "$(dirname "$path")"
+	mkdir -p -v "$PREFIX/$(dirname -- "$path")"
+	set_gpg_recipients "$(dirname -- "$path")"
 	local passfile="$PREFIX/$path.gpg"
 	set_git "$passfile"
 
@@ -506,8 +506,8 @@ cmd_generate() {
 	local length="${2:-$GENERATED_LENGTH}"
 	check_sneaky_paths "$path"
 	[[ ! $length =~ ^[0-9]+$ ]] && die "Error: pass-length \"$length\" must be a number."
-	mkdir -p -v "$PREFIX/$(dirname "$path")"
-	set_gpg_recipients "$(dirname "$path")"
+	mkdir -p -v "$PREFIX/$(dirname -- "$path")"
+	set_gpg_recipients "$(dirname -- "$path")"
 	local passfile="$PREFIX/$path.gpg"
 	set_git "$passfile"
 

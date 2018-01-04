@@ -1,11 +1,12 @@
 ;;; password-store.el --- Password store (pass) support
 
-;; Copyright (C) 2014-2017 Svend Sorensen <svend@ciffer.net>
+;; Copyright (C) 2014-2017 Svend Sorensen <svend@svends.net>
 
-;; Author: Svend Sorensen <svend@ciffer.net>
-;; Version: 1.0.0
-;; Package-Requires: ((f "0.11.0") (s "1.9.0") (with-editor "2.5.11"))
-;; Keywords: pass
+;; Author: Svend Sorensen <svend@svends.net>
+;; Version: 1.0.1
+;; URL: https://www.passwordstore.org/
+;; Package-Requires: ((emacs "24") (f "0.11.0") (s "1.9.0") (with-editor "2.5.11"))
+;; Keywords: tools pass password password-store
 
 ;; This file is not part of GNU Emacs.
 
@@ -82,10 +83,11 @@ outputs error message on failure."
   "Run pass asynchronously with ARGS.
 
 Nil arguments are ignored."
-  (with-editor-async-shell-command
-   (mapconcat 'identity
-              (cons password-store-executable
-                    (delq nil args)) " ")))
+  (let ((args (mapcar #'shell-quote-argument args)))
+    (with-editor-async-shell-command
+     (mapconcat 'identity
+                (cons password-store-executable
+                      (delq nil args)) " "))))
 
 (defun password-store--run-init (gpg-ids &optional folder)
   (apply 'password-store--run "init"
@@ -226,10 +228,11 @@ Separate multiple IDs with spaces."
   "Insert a new ENTRY containing PASSWORD."
   (interactive (list (read-string "Password entry: ")
                      (read-passwd "Password: " t)))
-  (message "%s" (shell-command-to-string (format "echo %s | %s insert -m -f %s"
-                                            (shell-quote-argument password)
-                                            password-store-executable
-                                            (shell-quote-argument entry)))))
+  (message "%s" (shell-command-to-string
+                 (format "echo %s | %s insert -m -f %s"
+                         (shell-quote-argument password)
+                         password-store-executable
+                         (shell-quote-argument entry)))))
 
 ;;;###autoload
 (defun password-store-generate (entry &optional password-length)
